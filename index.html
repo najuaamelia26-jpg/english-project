@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Journey | Academic Expedition</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================
+           1. KUNCI LAYAR - ANTI SCROLL UTAMA & TEMA LANGIT
+           ========================================= */
+        :root { 
+            --bg-light: rgba(255, 255, 255, 0.85); 
+            --text-dark: #0f172a; 
+            --text-blue: #0284c7;
+            --text-sky: #0ea5e9;
+            --grad-btn: linear-gradient(135deg, #0ea5e9, #0284c7);
+            --scroll-thumb: #bae6fd;
+            --error-red: #f43f5e;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body, html { 
+            height: 100vh; width: 100vw; overflow: hidden; 
+            font-family: 'Nunito', sans-serif; 
+            background: linear-gradient(to bottom, #7dd3fc 0%, #e0f2fe 50%, #f8fafc 100%); 
+            color: var(--text-dark);
+            display: flex; justify-content: center; align-items: center; position: relative;
+        }
+
+        /* =========================================
+           2. ANIMASI LANGIT (MATAHARI, AWAN, PESAWAT, BURUNG)
+           ========================================= */
+        .sky-container { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        
+        .sun {
+            position: absolute; top: 8%; right: 8%; width: 120px; height: 120px;
+            background: radial-gradient(circle, #fef08a 0%, #facc15 60%, #eab308 100%);
+            border-radius: 50%; box-shadow: 0 0 60px rgba(250, 204, 21, 0.8), 0 0 100px rgba(253, 224, 71, 0.4);
+            z-index: 0;
+        }
+
+        .cloud { position: absolute; background: white; border-radius: 50px; opacity: 0.9; animation: moveClouds linear infinite; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.05)); }
+        .cloud::before, .cloud::after { content: ''; position: absolute; background: white; border-radius: 50%; }
+        
+        .c1 { width: 140px; height: 40px; top: 15%; left: -150px; animation-duration: 45s; }
+        .c1::before { width: 60px; height: 60px; top: -30px; left: 20px; }
+        .c1::after { width: 50px; height: 50px; top: -20px; right: 20px; }
+        
+        .c2 { width: 200px; height: 60px; top: 35%; left: -250px; animation-duration: 70s; opacity: 0.7; transform: scale(1.3); }
+        .c2::before { width: 90px; height: 90px; top: -45px; left: 30px; }
+        .c2::after { width: 70px; height: 70px; top: -30px; right: 30px; }
+        
+        .c3 { width: 100px; height: 30px; top: 65%; left: -100px; animation-duration: 35s; opacity: 0.8; }
+        .c3::before { width: 45px; height: 45px; top: -20px; left: 15px; }
+        .c3::after { width: 35px; height: 35px; top: -10px; right: 15px; }
+
+        .c4 { width: 160px; height: 50px; top: 10%; right: -200px; animation: moveCloudsReverse 60s linear infinite; }
+        .c4::before { width: 70px; height: 70px; top: -35px; left: 25px; }
+        .c4::after { width: 60px; height: 60px; top: -25px; right: 25px; }
+
+        @keyframes moveClouds { from { transform: translateX(-250px); } to { transform: translateX(110vw); } }
+        @keyframes moveCloudsReverse { from { transform: translateX(110vw); } to { transform: translateX(-250px); } }
+
+        .airplane {
+            position: absolute; top: 20%; left: -100px; font-size: 30px;
+            animation: flyPlane 35s linear infinite; z-index: 1;
+        }
+        .airplane::after {
+            content: ''; position: absolute; right: 80%; top: 55%;
+            width: 150px; height: 3px; background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
+            border-radius: 5px; filter: blur(1px);
+        }
+        @keyframes flyPlane { from { left: -10vw; transform: translateY(0) scale(0.8); } to { left: 120vw; transform: translateY(-10vh) scale(0.8); } }
+
+        .bird { position: absolute; width: 15px; height: 15px; border-top: 3px solid rgba(15, 23, 42, 0.4); border-right: 3px solid rgba(15, 23, 42, 0.4); border-radius: 0 50% 0 0; transform: rotate(45deg); opacity: 0.8; animation: flyBirds linear infinite; z-index: 1;}
+        .b1 { top: 30%; left: -50px; animation-duration: 25s; }
+        .b2 { top: 32%; left: -80px; animation-duration: 25s; animation-delay: 0.5s; }
+        .b3 { top: 35%; left: -40px; animation-duration: 28s; animation-delay: 1.5s; }
+        @keyframes flyBirds { from { transform: translate(-100px, 0) rotate(45deg) scale(0.8); } to { transform: translate(120vw, -15vh) rotate(45deg) scale(0.8); } }
+
+        /* =========================================
+           3. APP WRAPPER (KOTAK UTAMA)
+           ========================================= */
+        .app-wrapper { 
+            width: 95vw; height: 92vh; max-width: 1200px;
+            background: var(--bg-light); backdrop-filter: blur(15px); border-radius: 20px; 
+            border: 2px solid rgba(255, 255, 255, 0.9); 
+            display: flex; flex-direction: column; overflow: hidden; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1); position: relative; z-index: 10;
+        }
+
+        .main-header { padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.95); border-bottom: 2px solid rgba(226, 232, 240, 0.6); flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .avatar-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--text-sky); background: white; object-fit: cover; }
+        .brand-name { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--text-blue); margin: 0; font-weight: 900; }
+        .brand-name span { color: var(--text-sky); }
+
+        .music-btn {
+            background: rgba(255, 255, 255, 0.9); border: 2px solid #cbd5e1; color: var(--text-dark);
+            padding: 8px 15px; border-radius: 100px; font-weight: 800; font-size: 12px; cursor: pointer;
+            transition: 0.3s; display: none; align-items: center; gap: 5px;
+        }
+        .music-btn:hover { background: #e2e8f0; border-color: var(--text-sky); }
+
+        /* =========================================
+           4. MAIN CONTENT AREA - SISTEM ANTI NUMPUK
+           ========================================= */
+        main { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; background: transparent; }
+        
+        .page { 
+            display: none !important; flex: 1; width: 100%; padding: 30px 40px; 
+            flex-direction: column; align-items: center; text-align: center; 
+            overflow-y: auto; overflow-x: hidden; background: transparent; 
+        }
+        .page::-webkit-scrollbar { width: 6px; }
+        .page::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .page.active { display: flex !important; animation: fadeUp 0.3s ease-out forwards; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           5. GLOBAL UI COMPONENTS
+           ========================================= */
+        .ultra-bold { font-family: 'Playfair Display', serif; font-weight: 900; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; color: var(--text-blue); text-shadow: 1px 1px 2px rgba(255,255,255,0.8); }
+        
+        .heavy-input { background: rgba(255,255,255,0.9); border: 2px solid var(--text-sky); padding: 18px; border-radius: 15px; color: var(--text-dark); width: 80%; max-width: 500px; font-size: 18px; font-weight: 900; text-align: center; margin: 20px 0 10px 0; outline: none; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .heavy-input:focus { border-color: var(--text-blue); box-shadow: 0 0 15px rgba(14, 165, 233, 0.2); }
+        .error-text { color: var(--error-red); font-size: 13px; font-weight: 800; margin-bottom: 20px; display: none; text-transform: uppercase; letter-spacing: 1px; background: rgba(255, 255, 255, 0.9); padding: 5px 15px; border-radius: 5px;}
+
+        .mega-button { background: var(--grad-btn); color: white; border: none; padding: 15px 40px; border-radius: 100px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3); text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
+        .mega-button:hover { transform: scale(1.05); }
+
+        /* DASHBOARD GRID */
+        .wide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1000px; margin: 0 auto; padding-bottom: 20px; }
+        .edu-box-dash { 
+            background: rgba(255,255,255,0.95); padding: 25px; border-radius: 20px; 
+            display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; cursor: pointer; transition: 0.3s;
+            border: 2px solid rgba(226, 232, 240, 0.8); text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+        .edu-box-dash:hover { border-color: var(--text-sky); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(14, 165, 233, 0.15); background: #ffffff; }
+        .icon-box { font-size: 35px; }
+
+        /* KOSAKATA MENJADI LEBAR */
+        .content-header-layout { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0; padding: 0 10px; }
+        .list-container { width: 100%; flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .inner-scroll { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; 
+            width: 100%; height: 100%; overflow-y: auto; padding-right: 15px; padding-bottom: 20px; align-content: start;
+        }
+        .inner-scroll::-webkit-scrollbar { width: 8px; }
+        .inner-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.5); border-radius: 10px; }
+        .inner-scroll::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
+
+        .vocab-card {
+            background: rgba(255,255,255,0.95); padding: 25px 30px; border-radius: 15px;
+            display: flex; flex-direction: column; align-items: flex-start; text-align: left;
+            cursor: pointer; transition: 0.2s; border: 2px solid rgba(226, 232, 240, 0.8); width: 100%;
+        }
+        .vocab-card:hover { border-color: var(--text-sky); background: #ffffff; transform: translateX(5px); box-shadow: 0 4px 15px rgba(14, 165, 233, 0.1); }
+        .vocab-en { font-size: 20px; font-weight: 900; color: var(--text-dark); margin-bottom: 5px; font-family: 'Playfair Display', serif; }
+        .vocab-id { font-size: 15px; font-weight: 700; color: #db2777; }
+
+        /* CHAT STYLE */
+        .inner-scroll.chat-mode { display: flex; flex-direction: column; }
+        .chat-bubble { padding: 20px 25px; border-radius: 20px; margin-bottom: 15px; width: 85%; font-weight: 600; text-align: left; line-height: 1.6; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .chat-l { background: rgba(255,255,255,0.95); align-self: flex-start; border-left: 5px solid var(--text-sky); }
+        .chat-r { background: rgba(224, 242, 254, 0.95); align-self: flex-end; border-right: 5px solid var(--text-blue); margin-left: auto; }
+        .chat-name { font-weight: 900; color: var(--text-blue); margin-bottom: 5px; display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .chat-meaning { font-size: 14px; color: #db2777; margin-top: 8px; font-weight: 700; }
+
+        /* GENDER & QUIZ */
+        .gender-selection { display: flex; gap: 20px; margin-bottom: 20px; }
+        .gender-btn { padding: 15px 30px; background: rgba(255, 255, 255, 0.9); border: 2px solid #cbd5e1; border-radius: 15px; color: var(--text-dark); font-weight: 900; cursor: pointer; transition: 0.3s; }
+        .gender-btn.active { background: var(--text-sky); color: white; border-color: transparent; }
+
+        .quiz-header { width: 100%; display: flex; justify-content: flex-start; align-items: center; margin-bottom: 20px; }
+        .back-btn-quiz { background: rgba(255, 255, 255, 0.9); color: var(--text-dark); border: 2px solid #e2e8f0; padding: 10px 20px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.3s; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 10px; align-self: flex-start;}
+        .back-btn-quiz:hover { background: #ffffff; border-color: var(--text-sky); }
+
+        .mega-timer { width: 100%; max-width: 800px; height: 10px; background: rgba(226, 232, 240, 0.8); border-radius: 10px; margin: 0 auto 30px auto; overflow: hidden; }
+        #tBar { height: 100%; background: var(--text-sky); width: 100%; transition: linear 0.1s; }
+        .options-grid { display: grid; gap: 12px; width: 100%; max-width: 800px; margin: 0 auto; padding-bottom: 30px; }
+        .opt-btn { background: rgba(255, 255, 255, 0.95); border: 2px solid rgba(226, 232, 240, 0.8); padding: 20px; border-radius: 15px; color: var(--text-dark); font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s; text-align: left; }
+        .opt-btn:hover { background: #ffffff; border-color: var(--text-sky); }
+        
+        .score-display { font-size: 140px; font-weight: 900; background: var(--grad-btn); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Fredoka One'; line-height: 1; margin: 20px auto; }
+        
+        /* TOMBOL KEMBALI DIATAS (SOLUSI ANTI HILANG DI HP) */
+        .back-link { 
+            cursor: pointer; font-weight: 900; color: #64748b; 
+            display: inline-block; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; 
+            text-decoration: underline; background: rgba(255, 255, 255, 0.9); padding: 8px 20px; 
+            border-radius: 20px; border: 2px solid #e2e8f0; align-self: flex-start; margin-bottom: 15px;
+        }
+        .back-link:hover { color: var(--text-blue); border-color: var(--text-sky); }
+        
+        /* RESPONSIVE UNTUK HP */
+        @media (max-width: 600px) {
+            .content-header-layout { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .mega-button { width: 100%; }
+            .page { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sky-container">
+        <div class="sun"></div>
+        <div class="cloud c1"></div>
+        <div class="cloud c2"></div>
+        <div class="cloud c3"></div>
+        <div class="cloud c4"></div>
+        <div class="airplane">✈️</div>
+        <div class="bird b1"></div>
+        <div class="bird b2"></div>
+        <div class="bird b3"></div>
+    </div>
+
+    <audio id="homeAudio" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"></audio>
+    <audio id="quizAudio" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3"></audio>
+    <audio id="winSound" src="https://www.myinstants.com/media/sounds/children-cheering.mp3"></audio>
+
+    <div class="app-wrapper">
+        <header class="main-header">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img id="avatarDisplay" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="avatar-img">
+                <h1 class="brand-name">English<span>Journey</span></h1>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button id="musicToggleBtn" class="music-btn" onclick="toggleMusic()">🔊 BGM: ON</button>
+                <div id="userDisplay" style="font-weight: 900; font-size: 11px; color: var(--text-sky); text-transform: uppercase; letter-spacing: 1px;">AWAITING LOGIN</div>
+            </div>
+        </header>
+
+        <main>
+            <section id="loginPage" class="page active" style="justify-content: center;">
+                <h2 class="ultra-bold" style="font-size: 32px;">IDENTITY VERIFICATION</h2>
+                
+                <input type="text" id="pName" class="heavy-input" placeholder="ENTER YOUR FULL NAME...">
+                <div id="nameError" class="error-text">* IDENTITY VERIFICATION FAILED. PLEASE ENTER YOUR FULL NAME TO PROCEED.</div>
+
+                <div class="gender-selection">
+                    <button class="gender-btn active" id="btnM" onclick="setGender('male')">MASCULINE</button>
+                    <button class="gender-btn" id="btnF" onclick="setGender('female')">FEMININE</button>
+                </div>
+                <button class="mega-button" onclick="startAdventure()">AUTHORIZE ACCESS</button>
+            </section>
+
+            <section id="homePage" class="page">
+                <h2 class="ultra-bold" style="font-size: 26px; margin-bottom: 20px;">ACADEMIC DASHBOARD</h2>
+                <div class="wide-grid">
+                    <div class="edu-box-dash" onclick="showPage('schoolSubMenu')">
+                        <span class="icon-box">🏛️</span><div><b style="font-weight: 900; font-size: 15px;">SCHOOL VOCABULARY</b><p style="color:#64748b; font-size:12px;">SD, SMP, SMA Assessment</p></div>
+                    </div>
+                    <div class="edu-box-dash" onclick="loadPath('ling')">
+                        <span class="icon-box">👥</span><div><b style="font-weight: 900; font-size: 15px;">LINGUISTICS</b><p style="color:#64748b; font-size:12px;">Morphology & Phonology</p></div>
+                    </div>
+                    <div class="edu-box-dash" onclick="loadPath('verb')">
+                        <span class="icon-box">🏃</span><div><b style="font-weight: 900; font-size: 15px;">COMPLEX VERBS</b><p style="color:#64748b; font-size:12px;">Action Terms</p></div>
+                    </div>
+                    <div class="edu-box-dash" onclick="loadPath('speech')">
+                        <span class="icon-box">🗣️</span><div><b style="font-weight: 900; font-size: 15px;">SYNTACTIC</b><p style="color:#64748b; font-size:12px;">Grammar Rules</p></div>
+                    </div>
+                    <div class="edu-box-dash" onclick="showPage('chatSubMenu')" style="border-color: var(--text-sky); background: rgba(240, 249, 255, 0.9);">
+                        <span class="icon-box">💬</span><div><b style="font-weight: 900; font-size: 15px;">SCHOOL CONVERSATIONS</b><p style="color:#db2777; font-size:12px;">Bilingual Chat Dialogues</p></div>
+                    </div>
+                </div>
+                <p style="font-size: 12px; font-weight: 800; color: #94a3b8; margin-top: auto; padding-top: 10px;">OFFICIAL PROJECT DEVELOPED BY NAJUA © 2026</p>
+            </section>
+
+            <section id="schoolSubMenu" class="page">
+                <p onclick="showPage('homePage')" class="back-link">← KEMBALI KE DASHBOARD</p>
+                <h2 class="ultra-bold" style="font-size: 26px; margin-bottom: 20px;">VOCABULARY LEVEL</h2>
+                <div class="wide-grid" style="max-width: 800px;">
+                    <div class="edu-box-dash" onclick="loadPath('sd')"><span class="icon-box">🎒</span><b style="font-weight: 900;">ELEMENTARY (SD)</b></div>
+                    <div class="edu-box-dash" onclick="loadPath('smp')"><span class="icon-box">🚲</span><b style="font-weight: 900;">JUNIOR HIGH (SMP)</b></div>
+                    <div class="edu-box-dash" onclick="loadPath('sma')"><span class="icon-box">🏫</span><b style="font-weight: 900;">SENIOR HIGH (SMA)</b></div>
+                </div>
+            </section>
+
+            <section id="chatSubMenu" class="page">
+                <p onclick="showPage('homePage')" class="back-link">← KEMBALI KE DASHBOARD</p>
+                <h2 class="ultra-bold" style="font-size: 26px; margin-bottom: 20px;">CONVERSATION LEVEL</h2>
+                <div class="wide-grid" style="max-width: 800px;">
+                    <div class="edu-box-dash" onclick="loadPath('chat_sd')"><span class="icon-box">🎒</span><b style="font-weight: 900;">ELEMENTARY CHAT</b></div>
+                    <div class="edu-box-dash" onclick="loadPath('chat_smp')"><span class="icon-box">🚲</span><b style="font-weight: 900;">JUNIOR HIGH CHAT</b></div>
+                    <div class="edu-box-dash" onclick="loadPath('chat_sma')"><span class="icon-box">🏫</span><b style="font-weight: 900;">SENIOR HIGH CHAT</b></div>
+                </div>
+            </section>
+
+            <section id="learnPage" class="page">
+                <p onclick="exitContent()" class="back-link">← KEMBALI</p>
+                <div class="content-header-layout">
+                    <h2 id="pathTitle" class="ultra-bold" style="font-size: 22px; margin:0; text-align: left;">TITLE</h2>
+                    <button class="mega-button" onclick="startTest()">START EXAM</button>
+                </div>
+                <div class="list-container">
+                    <div id="materiArea" class="inner-scroll"></div>
+                </div>
+            </section>
+
+            <section id="quizPage" class="page">
+                <div class="quiz-header">
+                    <button class="back-btn-quiz" onclick="backToLearn()">← KEMBALI KE MATERI</button>
+                </div>
+                <div class="mega-timer"><div id="tBar"></div></div>
+                <h2 id="qText" class="ultra-bold" style="font-size: 24px; margin-bottom: 30px;">?</h2>
+                <div id="qOpts" class="options-grid"></div>
+                <p id="qFeed" style="margin-top: 25px; font-weight: 900; font-size: 20px; padding-bottom: 20px;"></p>
+            </section>
+
+            <section id="resPage" class="page" style="justify-content: center;">
+                <h2 class="ultra-bold" style="font-size: 30px;">EXAMINATION FINISHED</h2>
+                <div id="finalScore" class="score-display">0</div>
+                <p id="resMsg" style="font-weight: 700; font-size: 16px; color: #64748b; max-width: 600px; margin-bottom: 30px; line-height: 1.6; text-align: center;"></p>
+                <button class="mega-button" onclick="backToLearn()">KEMBALI KE MATERI</button>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const db = {
+            sd: { name:"SD: FOUNDATIONAL TOOLS", v:[
+                {e:"Backpack",i:"Tas Punggung"},{e:"Notebook",i:"Buku Catatan"},{e:"Eraser",i:"Penghapus"},{e:"Sharpener",i:"Rautan"},{e:"Blackboard",i:"Papan Tulis"},
+                {e:"Classroom",i:"Ruang Kelas"},{e:"Uniform",i:"Seragam"},{e:"Homework",i:"Pekerjaan Rumah"},{e:"Dictionary",i:"Kamus"},{e:"Ruler",i:"Penggaris"},
+                {e:"Crayon",i:"Krayon"},{e:"Pencil Case",i:"Kotak Pensil"},{e:"Globe",i:"Bola Dunia"},{e:"Map",i:"Peta"},{e:"Compass",i:"Jangka"},
+                {e:"Protractor",i:"Busur Derajat"},{e:"Textbook",i:"Buku Pelajaran"},{e:"Folder",i:"Map Kertas"},{e:"Binder",i:"Map Cincin"},{e:"Chalk",i:"Kapur"},
+                {e:"Marker",i:"Spidol"},{e:"Highlighter",i:"Stabilo"},{e:"Glue Stick",i:"Lem Batang"},{e:"Scissors",i:"Gunting"},{e:"Tape",i:"Selotip"},
+                {e:"Stapler",i:"Penjepret"},{e:"Paperclip",i:"Klip Kertas"},{e:"Calculator",i:"Kalkulator"},{e:"Desk",i:"Meja Belajar"},{e:"Chair",i:"Kursi"},
+                {e:"Whiteboard",i:"Papan Tulis Putih"},{e:"Noticeboard",i:"Papan Pengumuman"},{e:"Calendar",i:"Kalender"},{e:"Clock",i:"Jam Dinding"},{e:"Wastebin",i:"Tempat Sampah"},
+                {e:"Broom",i:"Sapu"},{e:"Dustpan",i:"Pengki"},{e:"Mop",i:"Kain Pel"},{e:"Duster",i:"Kemoceng"},{e:"Water Bottle",i:"Botol Minum"},
+                {e:"Lunchbox",i:"Kotak Makan"},{e:"Library",i:"Perpustakaan"},{e:"Canteen",i:"Kantin"},{e:"Playground",i:"Taman Bermain"},{e:"Principal",i:"Kepala Sekolah"},
+                {e:"Teacher",i:"Guru"},{e:"Student",i:"Murid"},{e:"Classmate",i:"Teman Sekelas"},{e:"Subject",i:"Mata Pelajaran"},{e:"Schedule",i:"Jadwal"}
+            ]},
+            smp: { name:"SMP: INTERMEDIATE ACADEMIA", v:[
+                {e:"Curriculum",i:"Kurikulum"},{e:"Observation",i:"Observasi"},{e:"Laboratory",i:"Laboratorium"},{e:"Environment",i:"Lingkungan"},{e:"Achievement",i:"Pencapaian"},
+                {e:"Measurement",i:"Pengukuran"},{e:"Assignment",i:"Tugas Sekolah"},{e:"Literature",i:"Sastra"},{e:"Geography",i:"Geografi"},{e:"Experiment",i:"Eksperimen"},
+                {e:"Geometry",i:"Geometri"},{e:"History",i:"Sejarah"},{e:"Vocabulary",i:"Kosakata"},{e:"Agriculture",i:"Pertanian"},{e:"Atmosphere",i:"Atmosfer"},
+                {e:"Ecosystem",i:"Ekosistem"},{e:"Organism",i:"Organisme"},{e:"Cellular",i:"Seluler"},{e:"Microscope",i:"Mikroskop"},{e:"Telescope",i:"Teleskop"},
+                {e:"Astronomy",i:"Astronomi"},{e:"Velocity",i:"Kecepatan"},{e:"Acceleration",i:"Percepatan"},{e:"Gravity",i:"Gravitasi"},{e:"Friction",i:"Gesekan"},
+                {e:"Equation",i:"Persamaan"},{e:"Algebra",i:"Aljabar"},{e:"Fraction",i:"Pecahan"},{e:"Decimal",i:"Desimal"},{e:"Percentage",i:"Persentase"},
+                {e:"Grammar",i:"Tata Bahasa"},{e:"Pronunciation",i:"Pengucapan"},{e:"Comprehension",i:"Pemahaman"},{e:"Paragraph",i:"Paragraf"},{e:"Essay",i:"Esai"},
+                {e:"Introduction",i:"Pendahuluan"},{e:"Conclusion",i:"Kesimpulan"},{e:"Summary",i:"Ringkasan"},{e:"Dialogue",i:"Dialog"},{e:"Monologue",i:"Monolog"},
+                {e:"Society",i:"Masyarakat"},{e:"Culture",i:"Budaya"},{e:"Tradition",i:"Tradisi"},{e:"Government",i:"Pemerintah"},{e:"Constitution",i:"Konstitusi"},
+                {e:"Democracy",i:"Demokrasi"},{e:"Economy",i:"Ekonomi"},{e:"Commerce",i:"Perdagangan"},{e:"Industry",i:"Industri"},{e:"Technology",i:"Teknologi"}
+            ]},
+            sma: { name:"SMA: ELITE PREPARATORY", v:[
+                {e:"Innovation",i:"Inovasi"},{e:"Sustainability",i:"Keberlanjutan"},{e:"Scholarship",i:"Beasiswa"},{e:"Hypothesis",i:"Hipotesis"},{e:"Complexity",i:"Kompleksitas"},
+                {e:"Transformation",i:"Transformasi"},{e:"Investigation",i:"Investigasi"},{e:"Implementation",i:"Pelaksanaan"},{e:"Contribution",i:"Kontribusi"},{e:"Evaluation",i:"Evaluasi"},
+                {e:"Perspective",i:"Sudut Pandang"},{e:"Infrastructure",i:"Infrastruktur"},{e:"Photosynthesis",i:"Fotosintesis"},{e:"Thermodynamics",i:"Termodinamika"},{e:"Evolution",i:"Evolusi"},
+                {e:"Genetics",i:"Genetika"},{e:"Biodiversity",i:"Keanekaragaman Hayati"},{e:"Quantum",i:"Kuantum"},{e:"Relativity",i:"Relativitas"},{e:"Kinematics",i:"Kinematika"},
+                {e:"Trigonometry",i:"Trigonometri"},{e:"Calculus",i:"Kalkulus"},{e:"Derivative",i:"Turunan"},{e:"Integral",i:"Integral"},{e:"Probability",i:"Peluang"},
+                {e:"Statistics",i:"Statistika"},{e:"Psychology",i:"Psikologi"},{e:"Sociology",i:"Sosiologi"},{e:"Philosophy",i:"Filsafat"},{e:"Ideology",i:"Ideologi"},
+                {e:"Paradigm",i:"Paradigma"},{e:"Phenomenon",i:"Fenomena"},{e:"Correlation",i:"Korelasi"},{e:"Causation",i:"Sebab-Akibat"},{e:"Implication",i:"Implikasi"},
+                {e:"Significance",i:"Signifikansi"},{e:"Validity",i:"Validitas"},{e:"Reliability",i:"Reliabilitas"},{e:"Parameter",i:"Parameter"},{e:"Methodology",i:"Metodologi"},
+                {e:"Quantitative",i:"Kuantitatif"},{e:"Qualitative",i:"Kualitatif"},{e:"Empirical",i:"Empiris"},{e:"Theoretical",i:"Teoretis"},{e:"Framework",i:"Kerangka Kerja"},
+                {e:"Contextual",i:"Kontekstual"},{e:"Abstract",i:"Abstrak"},{e:"Concrete",i:"Konkret"},{e:"Dynamic",i:"Dinamis"},{e:"Static",i:"Statis"}
+            ]},
+            ling: { name:"ADVANCED LINGUISTICS", v:[
+                {e:"Morphology",i:"Struktur Pembentukan Kata"},{e:"Phonology",i:"Sistem Bunyi Bahasa"},{e:"Semantics",i:"Ilmu Makna"},{e:"Syntactic",i:"Struktur Kalimat"},{e:"Pragmatics",i:"Konteks Bahasa"},
+                {e:"Etymology",i:"Asal Usul Kata"},{e:"Sociolinguistics",i:"Linguistik Sosial"},{e:"Neurolinguistics",i:"Linguistik Otak"},{e:"Bilingualism",i:"Kedwibahasaan"},{e:"Dialectology",i:"Ilmu Dialek"},
+                {e:"Phonetics",i:"Bunyi Fisik"},{e:"Orthography",i:"Ejaan"},{e:"Philology",i:"Filologi"},{e:"Lexicography",i:"Penyusunan Kamus"},{e:"Discourse Analysis",i:"Analisis Wacana"},
+                {e:"Lexicon",i:"Kosakata (Kamus)"},{e:"Morpheme",i:"Morfem"},{e:"Phoneme",i:"Fonem"},{e:"Allophone",i:"Alofon"},{e:"Syllable",i:"Suku Kata"},
+                {e:"Consonant",i:"Konsonan"},{e:"Vowel",i:"Vokal"},{e:"Diphthong",i:"Diftong"},{e:"Intonation",i:"Intonasi"},{e:"Pitch",i:"Nada Suara"},
+                {e:"Stress",i:"Tekanan Kata"},{e:"Syntax",i:"Sintaksis"},{e:"Clause",i:"Klausa"},{e:"Phrase",i:"Frasa"},{e:"Idiom",i:"Idiom"},
+                {e:"Proverb",i:"Peribahasa"},{e:"Metaphor",i:"Metafora"},{e:"Simile",i:"Simile"},{e:"Hyperbole",i:"Hiperbola"},{e:"Synonym",i:"Sinonim"},
+                {e:"Antonym",i:"Antonim"},{e:"Homophone",i:"Homofon"},{e:"Homonym",i:"Homonim"},{e:"Polysemy",i:"Polisemi"},{e:"Collocation",i:"Kolokasi"},
+                {e:"Register",i:"Laras Bahasa"},{e:"Jargon",i:"Jargon"},{e:"Slang",i:"Bahasa Gaul"},{e:"Creole",i:"Bahasa Kreol"},{e:"Pidgin",i:"Bahasa Pidgin"},
+                {e:"Cognate",i:"Kata Serumpun"},{e:"Loanword",i:"Kata Serapan"},{e:"Neologism",i:"Kata Baru"},{e:"Acronym",i:"Akronim"},{e:"Abbreviation",i:"Singkatan"}
+            ]},
+            verb: { name:"SOPHISTICATED VERBS", v:[
+                {e:"Implement",i:"Melaksanakan"},{e:"Negotiate",i:"Bernegosiasi"},{e:"Analyze",i:"Menganalisis"},{e:"Facilitate",i:"Memfasilitasi"},{e:"Synthesize",i:"Mensintesis"},
+                {e:"Validate",i:"Memvalidasi"},{e:"Optimize",i:"Mengoptimalkan"},{e:"Integrate",i:"Mengintegrasikan"},{e:"Formulate",i:"Merumuskan"},{e:"Elaborate",i:"Menjelaskan Rinci"},
+                {e:"Establish",i:"Mendirikan"},{e:"Maintain",i:"Memelihara"},{e:"Synchronize",i:"Mensinkronkan"},{e:"Diversify",i:"Menganekaragamkan"},{e:"Neutralize",i:"Menetralkan"},
+                {e:"Accelerate",i:"Mempercepat"},{e:"Accumulate",i:"Mengumpulkan"},{e:"Administer",i:"Mengelola"},{e:"Advocate",i:"Menganjurkan"},{e:"Allocate",i:"Mengalokasikan"},
+                {e:"Anticipate",i:"Mengantisipasi"},{e:"Ascertain",i:"Memastikan"},{e:"Assess",i:"Menilai"},{e:"Authorize",i:"Memberi Wewenang"},{e:"Clarify",i:"Mengklarifikasi"},
+                {e:"Collaborate",i:"Berkolaborasi"},{e:"Communicate",i:"Berkomunikasi"},{e:"Compensate",i:"Memberi Kompensasi"},{e:"Compile",i:"Menyusun"},{e:"Comprehend",i:"Memahami"},
+                {e:"Consolidate",i:"Menggabungkan"},{e:"Construct",i:"Membangun"},{e:"Consult",i:"Berkonsultasi"},{e:"Coordinate",i:"Mengoordinasi"},{e:"Cultivate",i:"Membudayakan"},
+                {e:"Delegate",i:"Mendelegasikan"},{e:"Determine",i:"Menentukan"},{e:"Diagnose",i:"Mendiagnosis"},{e:"Differentiate",i:"Membedakan"},{e:"Eliminate",i:"Menghilangkan"},
+                {e:"Emphasize",i:"Menekankan"},{e:"Encounter",i:"Menghadapi"},{e:"Evaluate",i:"Mengevaluasi"},{e:"Execute",i:"Mengeksekusi"},{e:"Generate",i:"Menghasilkan"},
+                {e:"Illustrate",i:"Mengilustrasikan"},{e:"Incorporate",i:"Menggabungkan"},{e:"Investigate",i:"Menyelidiki"},{e:"Manipulate",i:"Memanipulasi"},{e:"Modify",i:"Memodifikasi"}
+            ]},
+            speech: { name:"SYNTACTIC STRUCTURES", v:[
+                {e:"Noun",i:"Kata Benda"},{e:"Verb",i:"Kata Kerja"},{e:"Adjective",i:"Kata Sifat"},{e:"Adverb",i:"Kata Keterangan"},{e:"Pronoun",i:"Kata Ganti"},
+                {e:"Preposition",i:"Kata Depan"},{e:"Conjunction",i:"Kata Hubung"},{e:"Interjection",i:"Kata Seru"},{e:"Article",i:"Kata Sandang"},{e:"Determiner",i:"Kata Penentu"},
+                {e:"Subject",i:"Subjek"},{e:"Predicate",i:"Predikat"},{e:"Object",i:"Objek"},{e:"Complement",i:"Pelengkap"},{e:"Modifier",i:"Pengubah"},
+                {e:"Phrase",i:"Frasa"},{e:"Clause",i:"Klausa"},{e:"Sentence",i:"Kalimat"},{e:"Paragraph",i:"Paragraf"},{e:"Syntax",i:"Sintaksis"},
+                {e:"Active Voice",i:"Kalimat Aktif"},{e:"Passive Voice",i:"Kalimat Pasif"},{e:"Direct Speech",i:"Kalimat Langsung"},{e:"Indirect Speech",i:"Kalimat Tidak Langsung"},{e:"Tense",i:"Kala Waktu"},
+                {e:"Present Tense",i:"Waktu Sekarang"},{e:"Past Tense",i:"Waktu Lampau"},{e:"Future Tense",i:"Waktu Mendatang"},{e:"Continuous",i:"Sedang Berlangsung"},{e:"Perfect",i:"Telah Selesai"},
+                {e:"Infinitive",i:"Kata Kerja Dasar"},{e:"Gerund",i:"Kata Kerja Jadi Benda"},{e:"Participle",i:"Partisipel"},{e:"Auxiliary",i:"Kata Kerja Bantu"},{e:"Modal",i:"Kata Kerja Modal"},
+                {e:"Singular",i:"Tunggal"},{e:"Plural",i:"Jamak"},{e:"Countable",i:"Bisa Dihitung"},{e:"Uncountable",i:"Tidak Bisa Dihitung"},{e:"Possessive",i:"Kepemilikan"},
+                {e:"Demonstrative",i:"Kata Tunjuk"},{e:"Interrogative",i:"Kata Tanya"},{e:"Relative",i:"Kata Relatif"},{e:"Reflexive",i:"Kata Refleksif"},{e:"Indefinite",i:"Tidak Tentu"},
+                {e:"Declarative",i:"Pernyataan"},{e:"Imperative",i:"Perintah"},{e:"Exclamatory",i:"Seruan"},{e:"Affirmative",i:"Positif"},{e:"Negative",i:"Negatif"}
+            ]},
+            chat_sd: { name:"ELEMENTARY CHAT", isChat:true, v:[
+                {n:"Student A", m:"Good morning! Our classroom looks a bit dirty today.", i:"Selamat pagi! Ruang kelas kita terlihat sedikit kotor hari ini."},
+                {n:"Student B", m:"Good morning! Yes, let's clean it before the teacher arrives.", i:"Selamat pagi! Ya, mari bersihkan sebelum guru tiba."},
+                {n:"Student A", m:"I will sweep the floor and take out the trash.", i:"Aku akan menyapu lantai dan membuang sampah."},
+                {n:"Student B", m:"Great, I will wipe the blackboard and arrange the desks.", i:"Bagus, aku akan menghapus papan tulis dan merapikan meja."},
+                {n:"Student A", m:"We should also water the plants near the window.", i:"Kita juga harus menyiram tanaman di dekat jendela."},
+                {n:"Student B", m:"Good idea. Plants need water to grow well.", i:"Ide bagus. Tanaman butuh air untuk tumbuh dengan baik."},
+                {n:"Student A", m:"We should also arrange the storybooks on the shelf.", i:"Kita juga harus merapikan buku-buku cerita di rak."},
+                {n:"Student B", m:"I will help you put them in alphabetical order.", i:"Aku akan membantumu menyusunnya sesuai abjad."},
+                {n:"Student A", m:"Our teacher will be very happy to see a clean classroom.", i:"Guru kita akan sangat senang melihat kelas yang bersih."},
+                {n:"Student B", m:"Yes, keeping the school clean is our responsibility.", i:"Ya, menjaga kebersihan sekolah adalah tanggung jawab kita."},
+                {n:"Student A", m:"After this, we can go to the school library to read.", i:"Setelah ini, kita bisa pergi ke perpustakaan sekolah untuk membaca."},
+                {n:"Student B", m:"I want to borrow a new book about wild animals.", i:"Aku ingin meminjam buku baru tentang hewan liar."},
+                {n:"Student A", m:"We must be quiet in the library so we don't disturb others.", i:"Kita harus tenang di perpustakaan agar tidak mengganggu yang lain."},
+                {n:"Student B", m:"Of course. We must always follow the school rules.", i:"Tentu saja. Kita harus selalu mengikuti peraturan sekolah."},
+                {n:"Student A", m:"Let's wash our hands before the bell rings.", i:"Ayo kita cuci tangan sebelum bel berbunyi."},
+                {n:"Student B", m:"Okay, let's go to the sink together!", i:"Oke, ayo kita pergi ke wastafel bersama!"},
+                {n:"Student A", m:"What do you want to eat for lunch today?", i:"Kamu mau makan apa untuk makan siang hari ini?"},
+                {n:"Student B", m:"My mother cooked some fried rice and chicken for me.", i:"Ibuku memasak nasi goreng dan ayam untukku."},
+                {n:"Student A", m:"That sounds delicious! I brought a cheese sandwich.", i:"Kedengarannya lezat! Aku membawa roti lapis keju."},
+                {n:"Student B", m:"We can eat together in the canteen during break time.", i:"Kita bisa makan bersama di kantin saat waktu istirahat."},
+                {n:"Student A", m:"Yes, and then we can play hide and seek in the playground.", i:"Ya, dan kemudian kita bisa bermain petak umpet di taman bermain."},
+                {n:"Student B", m:"I want to play on the swings with our friends too.", i:"Aku ingin bermain ayunan bersama teman-teman kita juga."},
+                {n:"Student A", m:"Don't forget we have an art class after lunch.", i:"Jangan lupa kita ada kelas seni setelah makan siang."},
+                {n:"Student B", m:"I brought my new crayons to draw a picture of a mountain.", i:"Aku membawa krayon baruku untuk menggambar gunung."},
+                {n:"Student A", m:"We will also learn how to fold origami today.", i:"Kita juga akan belajar cara melipat origami hari ini."},
+                {n:"Student B", m:"I want to make a paper bird and a paper boat.", i:"Aku ingin membuat burung kertas dan perahu kertas."},
+                {n:"Student A", m:"It is going to be a very fun day at school!", i:"Ini akan menjadi hari yang sangat menyenangkan di sekolah!"},
+                {n:"Student B", m:"Yes, I love learning and playing at school everyday.", i:"Ya, aku suka belajar dan bermain di sekolah setiap hari."}
+            ]},
+            chat_smp: { name:"JUNIOR HIGH CHAT", isChat:true, v:[
+                {n:"Student A", m:"Did you know the science club is making compost in the school garden?", i:"Tahukah kamu klub sains sedang membuat kompos di taman sekolah?"},
+                {n:"Student B", m:"Yes, they collect dry leaves and organic waste every afternoon.", i:"Ya, mereka mengumpulkan daun kering dan sampah organik setiap sore."},
+                {n:"Student A", m:"That is a great way to keep our school clean and green.", i:"Itu adalah cara yang bagus untuk menjaga sekolah kita tetap bersih dan hijau."},
+                {n:"Student B", m:"I agree. We should also stop using plastic bottles in the canteen.", i:"Aku setuju. Kita juga harus berhenti menggunakan botol plastik di kantin."},
+                {n:"Student A", m:"I always bring my own water bottle from home to reduce plastic.", i:"Aku selalu membawa botol minumku sendiri dari rumah untuk mengurangi plastik."},
+                {n:"Student B", m:"I will do that too starting tomorrow. Let's protect our environment.", i:"Aku akan melakukannya juga mulai besok. Mari lindungi lingkungan kita."},
+                {n:"Student A", m:"Have you seen the new recycling bins near the library?", i:"Pernahkah kamu melihat tempat sampah daur ulang baru di dekat perpustakaan?"},
+                {n:"Student B", m:"Yes, there are three colors for different types of waste.", i:"Ya, ada tiga warna untuk jenis sampah yang berbeda."},
+                {n:"Student A", m:"The blue one is for paper, and the yellow one is for plastic.", i:"Yang biru untuk kertas, dan yang kuning untuk plastik."},
+                {n:"Student B", m:"We must make sure everyone uses them correctly.", i:"Kita harus memastikan semua orang menggunakannya dengan benar."},
+                {n:"Student A", m:"I plan to make a poster to remind the students about it.", i:"Aku berencana membuat poster untuk mengingatkan para siswa tentang hal itu."},
+                {n:"Student B", m:"That is a brilliant idea! Let me help you draw the poster.", i:"Itu adalah ide yang cemerlang! Biarkan aku membantumu menggambar poster itu."},
+                {n:"Student A", m:"Awesome! We can present it to the teacher during the homeroom session.", i:"Luar biasa! Kita bisa menyajikannya kepada guru selama sesi wali kelas."},
+                {n:"Student B", m:"Are you joining the basketball practice this afternoon?", i:"Apakah kamu ikut latihan basket sore ini?"},
+                {n:"Student A", m:"Yes, we have a tournament against another school next month.", i:"Ya, kita ada turnamen melawan sekolah lain bulan depan."},
+                {n:"Student B", m:"We need to practice hard to win the championship trophy.", i:"Kita harus berlatih keras untuk memenangkan piala kejuaraan."},
+                {n:"Student A", m:"Don't forget to wash your hands before eating after practice.", i:"Jangan lupa cuci tangan sebelum makan setelah latihan."},
+                {n:"Student B", m:"I won't. Personal hygiene is very important for our health.", i:"Tidak akan. Kebersihan pribadi sangat penting untuk kesehatan kita."},
+                {n:"Student A", m:"By the way, the math quiz is scheduled for next Wednesday.", i:"Ngomong-ngomong, kuis matematika dijadwalkan hari Rabu depan."},
+                {n:"Student B", m:"Oh no, I need to study fractions, decimals, and algebra again.", i:"Oh tidak, aku harus belajar pecahan, desimal, dan aljabar lagi."},
+                {n:"Student A", m:"We can study together in the library if you want.", i:"Kita bisa belajar bersama di perpustakaan jika kamu mau."},
+                {n:"Student B", m:"Thank you, that would be very helpful. Math is quite difficult for me.", i:"Terima kasih, itu akan sangat membantu. Matematika cukup sulit bagiku."},
+                {n:"Student A", m:"Don't worry, we will solve the equations together.", i:"Jangan khawatir, kita akan memecahkan persamaannya bersama."},
+                {n:"Student B", m:"We also need to prepare for the geography presentation.", i:"Kita juga perlu bersiap untuk presentasi geografi."},
+                {n:"Student A", m:"Right, we need to bring the globe and the map of Indonesia.", i:"Benar, kita perlu membawa bola dunia dan peta Indonesia."},
+                {n:"Student B", m:"Let's do our best for our school and our studies!", i:"Mari kita lakukan yang terbaik untuk sekolah dan pelajaran kita!"},
+                {n:"Student A", m:"Yes, let's keep the academic spirit high!", i:"Ya, mari jaga semangat akademik tetap tinggi!"}
+            ]},
+            chat_sma: { name:"SENIOR HIGH CHAT", isChat:true, v:[
+                {n:"Senior A", m:"The student council proposed installing solar panels above the laboratory.", i:"OSIS mengusulkan pemasangan panel surya di atas laboratorium."},
+                {n:"Senior B", m:"That is a brilliant initiative to minimize our school's energy consumption.", i:"Itu inisiatif cemerlang untuk meminimalkan konsumsi energi sekolah kita."},
+                {n:"Senior A", m:"Indeed. They also plan to digitize our assignments to reduce paper waste.", i:"Memang. Mereka juga berencana mendigitalkan tugas kita untuk mengurangi limbah kertas."},
+                {n:"Senior B", m:"Transitioning to a paperless curriculum is crucial for environmental sustainability.", i:"Transisi ke kurikulum tanpa kertas sangat penting untuk keberlanjutan lingkungan."},
+                {n:"Senior A", m:"We should organize a seminar to educate the juniors about biodiversity.", i:"Kita harus mengadakan seminar untuk mendidik junior tentang keanekaragaman hayati."},
+                {n:"Senior B", m:"I completely agree. Spreading awareness is just as important as implementation.", i:"Aku sepenuhnya setuju. Menyebarkan kesadaran sama pentingnya dengan pelaksanaan."},
+                {n:"Senior A", m:"Let's draft the presentation outline and submit it to the biology department.", i:"Mari buat garis besar presentasi dan menyerahkannya ke departemen biologi."},
+                {n:"Senior B", m:"Perfect. This collaboration will leave a positive legacy for our campus.", i:"Sempurna. Kolaborasi ini akan meninggalkan warisan positif untuk kampus kita."},
+                {n:"Senior A", m:"Are you preparing for the final university entrance exam in the library?", i:"Apakah kamu sedang mempersiapkan ujian masuk universitas di perpustakaan?"},
+                {n:"Senior B", m:"Yes, I am reading some advanced history and sociology books.", i:"Ya, aku sedang membaca beberapa buku sejarah dan sosiologi tingkat lanjut."},
+                {n:"Senior A", m:"It is the best place to focus. The literature section is very comprehensive here.", i:"Ini adalah tempat terbaik untuk fokus. Bagian sastranya sangat komprehensif di sini."},
+                {n:"Senior B", m:"Have you decided which university major you will apply for next year?", i:"Apakah kamu sudah memutuskan jurusan universitas mana yang akan kamu lamar tahun depan?"},
+                {n:"Senior A", m:"I am considering Environmental Science or Advanced Linguistics. What about you?", i:"Aku sedang mempertimbangkan Ilmu Lingkungan atau Linguistik Lanjutan. Bagaimana denganmu?"},
+                {n:"Senior B", m:"I want to major in Computer Science to study algorithms and programming.", i:"Aku ingin mengambil jurusan Ilmu Komputer untuk belajar algoritma dan pemrograman."},
+                {n:"Senior A", m:"That is an excellent choice. The world needs experts in technology and cybernetics.", i:"Itu pilihan yang sangat baik. Dunia membutuhkan para ahli di bidang teknologi dan sibernetika."},
+                {n:"Senior B", m:"Thank you. I need to maintain my grades to secure the university scholarship.", i:"Terima kasih. Aku harus mempertahankan nilaiku untuk mengamankan beasiswa universitas."},
+                {n:"Senior A", m:"We should initiate a study group to help each other understand complex topics.", i:"Kita harus memulai kelompok belajar untuk saling membantu memahami topik yang kompleks."},
+                {n:"Senior B", m:"That would be very helpful. We can discuss physics kinematics and thermodynamics.", i:"Itu akan sangat membantu. Kita bisa membahas kinematika dan termodinamika fisika."},
+                {n:"Senior A", m:"I can also ask the chemistry teacher to guide us on molecular compounds.", i:"Aku juga bisa meminta guru kimia untuk membimbing kita tentang senyawa molekuler."},
+                {n:"Senior B", m:"Collaboration is definitely the key to making our academic goals successful.", i:"Kolaborasi pastinya adalah kunci untuk membuat tujuan akademik kita berhasil."},
+                {n:"Senior A", m:"Let's finish reading this chapter, then we can synthesize our research methodology.", i:"Mari selesaikan membaca bab ini, kemudian kita bisa mensintesis metodologi penelitian kita."},
+                {n:"Senior B", m:"Sounds like a solid academic plan. Let's get back to our intensive studies.", i:"Kedengarannya seperti rencana akademik yang solid. Mari kita kembali ke studi intensif kita."}
+            ]}
+        };
+
+        let pName = ""; let curLvl = ""; let score = 0; let curQ = 0; let timer; let curQuiz = []; let gender = 'male';
+        let lastMenu = 'homePage'; 
+        
+        let isMusicOn = true;
+        const homeAudio = document.getElementById('homeAudio');
+        const quizAudio = document.getElementById('quizAudio');
+
+        function toggleMusic() {
+            isMusicOn = !isMusicOn;
+            const btn = document.getElementById('musicToggleBtn');
+            const activePage = document.querySelector('.page.active').id;
+            
+            if(isMusicOn) {
+                btn.innerText = "🔊 BGM: ON";
+                if(activePage === 'quizPage' || activePage === 'resPage') {
+                    quizAudio.play().catch(e => console.log(e));
+                } else {
+                    homeAudio.play().catch(e => console.log(e));
+                }
+            } else {
+                btn.innerText = "🔇 BGM: OFF";
+                homeAudio.pause();
+                quizAudio.pause();
+            }
+        }
+
+        function setGender(g) {
+            gender = g;
+            document.getElementById('btnM').classList.toggle('active', g==='male');
+            document.getElementById('btnF').classList.toggle('active', g==='female');
+        }
+
+        function talk(t) { 
+            if('speechSynthesis' in window) {
+                const s = new SpeechSynthesisUtterance(t); 
+                s.lang = 'en-US'; s.pitch = (gender === 'female' ? 1.4 : 1.0); 
+                window.speechSynthesis.speak(s); 
+            }
+        }
+
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function startAdventure() {
+            const val = document.getElementById('pName').value.trim();
+            const err = document.getElementById('nameError');
+            
+            if(!val) { 
+                err.style.display = 'block'; 
+                return; 
+            }
+            
+            err.style.display = 'none'; 
+            pName = val;
+            
+            document.getElementById('userDisplay').innerText = "AUTHOR: " + pName.toUpperCase() + " (VERIFIED)";
+            document.getElementById('avatarDisplay').src = gender === 'male' ? 
+                "https://cdn-icons-png.flaticon.com/512/3135/3135715.png" : 
+                "https://cdn-icons-png.flaticon.com/512/6997/6997662.png";
+            
+            document.getElementById('musicToggleBtn').style.display = 'flex';
+            
+            showPage('homePage');
+            if(isMusicOn) homeAudio.play().catch(e => console.log("Audio play prevented"));
+        }
+
+        function loadPath(l) {
+            curLvl = l; const d = db[l];
+            document.getElementById('pathTitle').innerText = d.name;
+            const area = document.getElementById('materiArea'); area.innerHTML = "";
+            
+            if(['sd', 'smp', 'sma'].includes(l)) {
+                lastMenu = 'schoolSubMenu';
+            } else if (l.startsWith('chat')) {
+                lastMenu = 'chatSubMenu';
+            } else {
+                lastMenu = 'homePage';
+            }
+            
+            if(!d.isChat) {
+                area.classList.remove('chat-mode');
+                area.style.gridTemplateColumns = "1fr 1fr";
+                d.v.forEach(x => {
+                    const card = document.createElement('div'); card.className = "vocab-card";
+                    card.innerHTML = `<div class="vocab-en">${x.e}</div><div class="vocab-id">${x.i}</div>`;
+                    card.onclick = () => talk(x.e); area.appendChild(card);
+                });
+            } else {
+                area.classList.add('chat-mode');
+                area.style.gridTemplateColumns = "1fr";
+                d.v.forEach((x, i) => {
+                    const b = document.createElement('div'); b.className = i%2===0 ? "chat-bubble chat-l" : "chat-bubble chat-r";
+                    b.innerHTML = `<span class="chat-name">${x.n}</span><div style="font-size:16px;">${x.m}</div><div class="chat-meaning">${x.i}</div>`; 
+                    b.onclick = () => talk(x.m); area.appendChild(b);
+                });
+            }
+            showPage('learnPage');
+        }
+
+        function exitContent() {
+            showPage(lastMenu);
+        }
+
+        function backToLearn() {
+            clearInterval(timer);
+            document.getElementById('qFeed').innerText = "";
+            quizAudio.pause(); 
+            quizAudio.currentTime = 0;
+            if(isMusicOn) homeAudio.play().catch(e => console.log(e));
+            showPage('learnPage');
+        }
+
+        function startTest() {
+            homeAudio.pause();
+            quizAudio.currentTime = 0;
+            if(isMusicOn) quizAudio.play().catch(e => console.log("Audio play prevented"));
+            
+            let pool = db[curLvl].isChat ? db[curLvl].v.map(x=>({e:x.m, i:x.i})) : db[curLvl].v;
+            curQuiz = [...pool].sort(()=>.5-Math.random()).slice(0, 10);
+            curQ = 0; score = 0; showPage('quizPage'); showQ();
+        }
+
+        function showQ() {
+            if(curQ >= curQuiz.length) return finish();
+            const d = curQuiz[curQ];
+            document.getElementById('qText').innerText = `IDENTIFY THE MEANING:\n"${d.e.toUpperCase()}"`;
+            talk(d.e);
+            const area = document.getElementById('qOpts'); area.innerHTML = "";
+            let opts = [d.i];
+            
+            while(opts.length < 4) {
+                let pool = db[curLvl].isChat ? db[curLvl].v.map(x=>({i:x.i})) : db[curLvl].v;
+                let r = pool[Math.floor(Math.random()*pool.length)].i;
+                if(!opts.includes(r)) opts.push(r);
+            }
+            
+            opts.sort(()=>.5-Math.random()).forEach(o => {
+                const b = document.createElement('button'); b.className = "opt-btn";
+                b.innerText = o;
+                b.onclick = () => {
+                    clearInterval(timer);
+                    if(o === d.i) { score += 10; document.getElementById('qFeed').innerHTML="<span style='color: #10b981;'>CORRECT! 🌟</span>"; talk("Correct"); }
+                    else { document.getElementById('qFeed').innerHTML="<span style='color: #f43f5e;'>INCORRECT! ❌</span>"; talk("Incorrect"); }
+                    
+                    const buttons = area.querySelectorAll('.opt-btn');
+                    buttons.forEach(btn => btn.disabled = true);
+
+                    setTimeout(()=>{ document.getElementById('qFeed').innerText=""; curQ++; showQ(); }, 1200);
+                };
+                area.appendChild(b);
+            });
+            startTimer();
+        }
+
+        function startTimer() {
+            let t = 100; const bar = document.getElementById('tBar');
+            clearInterval(timer);
+            timer = setInterval(() => { 
+                t -= 1; bar.style.width = t + "%"; 
+                if(t <= 0) { 
+                    clearInterval(timer); 
+                    document.getElementById('qFeed').innerHTML="<span style='color: #f59e0b;'>TIME IS UP! ⏰</span>"; 
+                    document.querySelectorAll('.opt-btn').forEach(btn => btn.disabled = true);
+                    setTimeout(()=>{ document.getElementById('qFeed').innerText=""; curQ++; showQ(); }, 1200); 
+                } 
+            }, 120);
+        }
+
+        function finish() {
+            showPage('resPage');
+            document.getElementById('finalScore').innerText = score;
+            let msg = score >= 80 ? "Exemplary Academic Performance! You have demonstrated exceptional mastery of the lexicon." : "Scholarly review recommended. Continuous exposure to academic vocabulary is highly recommended.";
+            document.getElementById('resMsg').innerText = msg;
+            talk(msg);
+            if(score >= 80) { document.getElementById('winSound').play().catch(e=>console.log(e)); confetti({ particleCount: 250, spread: 100, origin: { y: 0.5 } }); }
+        }
+    </script>
+</body>
+</html>
